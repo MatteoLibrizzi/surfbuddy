@@ -32,7 +32,7 @@ export default function LandingPage() {
             <span className="text-blue-600 block">Surf Trip</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Find and join surf trips planned by fellow surfers. Explore new destinations and share the stoke.
+            Find and join surf trips planned by fellow surfers. Explore new destinations, share the stoke and the expenses.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/trips">
@@ -80,37 +80,6 @@ export default function LandingPage() {
                 <CardTitle>Share Rides & Stays</CardTitle>
                 <CardDescription>
                   Split travel costs by sharing rides and accommodation. Make surf trips more affordable for everyone.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <MessageCircle className="h-12 w-12 text-blue-600 mb-4" />
-                <CardTitle>Safe Communication</CardTitle>
-                <CardDescription>
-                  Chat with potential surf buddies through our secure messaging system before committing to travel.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <MapPin className="h-12 w-12 text-blue-600 mb-4" />
-                <CardTitle>Location Aware</CardTitle>
-                <CardDescription>
-                  Find surf buddies and trips near your location or planned destinations with smart location filtering.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Shield className="h-12 w-12 text-blue-600 mb-4" />
-                <CardTitle>Trust & Safety</CardTitle>
-                <CardDescription>
-                  Verified profiles, user reviews, and safety guidelines ensure you connect with genuine surf
-                  enthusiasts.
                 </CardDescription>
               </CardHeader>
             </Card>
