@@ -2,7 +2,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, UpdateCommand, DeleteCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 
 // Environment configuration
-const isDev = process.env.NODE_ENV !== 'production';
+const isDev = process.env.ENV !== 'production';
 
 // AWS Configuration based on environment
 const awsConfig = {
