@@ -10,31 +10,122 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { CalendarIcon, MapPin, Users, ArrowLeft } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { CalendarIcon, MapPin, Users, ArrowLeft, Loader2, Plus, X } from "lucide-react"
 import { format } from "date-fns"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useCreateTrip } from "@/hooks/use-trips"
+import { useToast } from "@/hooks/use-toast"
+
+interface Location {
+  city: string;
+  country: string;
+}
 
 export default function CreateTripPage() {
   const [tripData, setTripData] = useState({
     name: "",
     email: "",
     phone: "",
-    destination: "",
     startDate: undefined as Date | undefined,
     endDate: undefined as Date | undefined,
-    maxParticipants: "",
+    maxParticipants: "6",
+    surfLevel: "intermediate",
     notes: "",
+    whatsappGroupLink: "",
   })
 
-  const router = useRouter()
+  const [locations, setLocations] = useState<Location[]>([
+    { city: "", country: "" }
+  ])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const router = useRouter()
+  const { toast } = useToast()
+  const { createTrip, loading, error } = useCreateTrip()
+
+  // Helper functions for location management
+  const addLocation = () => {
+    setLocations([...locations, { city: "", country: "" }])
+  }
+
+  const removeLocation = (index: number) => {
+    if (locations.length > 1) {
+      setLocations(locations.filter((_, i) => i !== index))
+    }
+  }
+
+  const updateLocation = (index: number, field: keyof Location, value: string) => {
+    const updatedLocations = locations.map((location, i) => 
+      i === index ? { ...location, [field]: value } : location
+    )
+    setLocations(updatedLocations)
+  }
+
+  // Generate destination string from locations
+  const getDestinationString = () => {
+    return locations
+      .filter(loc => loc.city.trim() || loc.country.trim())
+      .map(loc => {
+        const parts = [loc.city.trim(), loc.country.trim()].filter(Boolean)
+        return parts.join(', ')
+      })
+      .join(' | ')
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Creating trip:", tripData)
-    // Handle trip creation logic
-    // Redirect to the new trip page (replace '/trip/123' with the actual trip ID)
-    router.push("/trip/123")
+    
+    const destinationString = getDestinationString()
+    const hasValidLocation = locations.some(loc => loc.city.trim() || loc.country.trim())
+    
+    // Validation
+    if (!tripData.name || !tripData.email || !tripData.phone || !hasValidLocation || !tripData.startDate || !tripData.endDate) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields including at least one location.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (tripData.startDate >= tripData.endDate) {
+      toast({
+        title: "Invalid Dates",
+        description: "End date must be after start date.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      const trip = await createTrip({
+        destination: destinationString,
+        startDate: tripData.startDate.toISOString().split('T')[0],
+        endDate: tripData.endDate.toISOString().split('T')[0],
+        maxParticipants: parseInt(tripData.maxParticipants) || 6,
+        surfLevel: tripData.surfLevel,
+        description: tripData.notes,
+        creatorName: tripData.name,
+        creatorEmail: tripData.email,
+        creatorPhone: tripData.phone,
+        whatsappGroupLink: tripData.whatsappGroupLink || undefined,
+      })
+
+      if (trip) {
+        toast({
+          title: "Trip Created!",
+          description: "Your surf trip has been created successfully.",
+        })
+        router.push(`/trips/${trip.tripId}`)
+      }
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: error || "Failed to create trip. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
@@ -43,7 +134,7 @@ export default function CreateTripPage() {
       <header className="bg-white border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard">
+            <Link href="/">
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Dashboard
@@ -97,20 +188,76 @@ export default function CreateTripPage() {
                 </div>
               </div>
 
-              {/* Destination */}
-              <div className="space-y-2">
-                <Label htmlFor="destination">Destination *</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    id="destination"
-                    placeholder="e.g., Ericeira, Portugal or Malibu, CA"
-                    value={tripData.destination}
-                    onChange={(e) => setTripData((prev) => ({ ...prev, destination: e.target.value }))}
-                    className="pl-10"
-                    required
-                  />
+              {/* Locations */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Destinations *</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addLocation}
+                    className="text-xs"
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add Location
+                  </Button>
                 </div>
+                
+                {locations.map((location, index) => (
+                  <div key={index} className="space-y-3 p-4 border rounded-lg bg-gray-50">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">
+                        Location {index + 1}
+                      </span>
+                      {locations.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeLocation(index)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label htmlFor={`city-${index}`}>City/Spot</Label>
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                          <Input
+                            id={`city-${index}`}
+                            placeholder="e.g., Ericeira, Malibu"
+                            value={location.city}
+                            onChange={(e) => updateLocation(index, 'city', e.target.value)}
+                            className="pl-10"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor={`country-${index}`}>Country/Region</Label>
+                        <Input
+                          id={`country-${index}`}
+                          placeholder="e.g., Portugal, California"
+                          value={location.country}
+                          onChange={(e) => updateLocation(index, 'country', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {getDestinationString() && (
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <strong>Preview:</strong> {getDestinationString()}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Dates */}
@@ -129,7 +276,7 @@ export default function CreateTripPage() {
                         mode="single"
                         selected={tripData.startDate}
                         onSelect={(date) => setTripData((prev) => ({ ...prev, startDate: date }))}
-                        initialFocus
+                        required
                       />
                     </PopoverContent>
                   </Popover>
@@ -156,22 +303,56 @@ export default function CreateTripPage() {
                 </div>
               </div>
 
-              {/* Group Size */}
-              <div className="space-y-2">
-                <Label htmlFor="maxParticipants">Max Participants</Label>
-                <div className="relative">
-                  <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    id="maxParticipants"
-                    type="number"
-                    placeholder="e.g., 4"
-                    value={tripData.maxParticipants}
-                    onChange={(e) => setTripData((prev) => ({ ...prev, maxParticipants: e.target.value }))}
-                    className="pl-10"
-                    min="1"
-                    max="20"
-                  />
+              {/* Group Size and Surf Level */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="maxParticipants">Max Participants</Label>
+                  <div className="relative">
+                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      id="maxParticipants"
+                      type="number"
+                      placeholder="e.g., 4"
+                      value={tripData.maxParticipants}
+                      onChange={(e) => setTripData((prev) => ({ ...prev, maxParticipants: e.target.value }))}
+                      className="pl-10"
+                      min="1"
+                      max="20"
+                    />
+                  </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="surfLevel">Surf Level</Label>
+                  <Select
+                    value={tripData.surfLevel}
+                    onValueChange={(value) => setTripData((prev) => ({ ...prev, surfLevel: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select surf level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="beginner">Beginner</SelectItem>
+                      <SelectItem value="intermediate">Intermediate</SelectItem>
+                      <SelectItem value="advanced">Advanced</SelectItem>
+                      <SelectItem value="mixed">Mixed Levels</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* WhatsApp Group Link */}
+              <div className="space-y-2">
+                <Label htmlFor="whatsappGroupLink">WhatsApp Group Link (Optional)</Label>
+                <Input
+                  id="whatsappGroupLink"
+                  placeholder="https://chat.whatsapp.com/..."
+                  value={tripData.whatsappGroupLink}
+                  onChange={(e) => setTripData((prev) => ({ ...prev, whatsappGroupLink: e.target.value }))}
+                />
+                <p className="text-sm text-gray-500">
+                  Share your WhatsApp group invite link so participants can easily join the group chat.
+                </p>
               </div>
 
               {/* Notes */}
@@ -186,23 +367,22 @@ export default function CreateTripPage() {
                 />
               </div>
 
-              {/* WhatsApp Group Notice */}
-              <div className="bg-green-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-green-900 mb-2">WhatsApp Group 💬</h3>
-                <p className="text-sm text-green-800">
-                  A WhatsApp group will be created for this trip to coordinate details and connect with fellow surfers.
-                </p>
-              </div>
-
               {/* Submit */}
               <div className="flex gap-4">
-                <Link href="/dashboard" className="flex-1">
-                  <Button type="button" variant="outline" className="w-full bg-transparent">
+                <Link href="/" className="flex-1">
+                  <Button type="button" variant="outline" className="w-full bg-transparent" disabled={loading}>
                     Cancel
                   </Button>
                 </Link>
-                <Button type="submit" className="flex-1">
-                  Create Trip
+                <Button type="submit" className="flex-1" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating Trip...
+                    </>
+                  ) : (
+                    "Create Trip"
+                  )}
                 </Button>
               </div>
             </form>

@@ -5,60 +5,106 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { MapPin, Calendar, Users, Phone, Mail, ArrowLeft, MessageCircle, Share2 } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { MapPin, Calendar, Users, Phone, Mail, ArrowLeft, MessageCircle, Share2, ExternalLink } from "lucide-react"
 import Link from "next/link"
+import { useTrip } from "@/hooks/use-trips"
+import { format } from "date-fns"
 
-// Mock trip data - in real app this would come from params
-const trip = {
-  id: 1,
-  destination: "Ericeira, Portugal",
-  startDate: "Mar 15, 2024",
-  endDate: "Mar 22, 2024",
-  creator: {
-    name: "Sarah Chen",
-    phone: "+1 (555) 123-4567",
-    email: "sarah@example.com",
-  },
-  participants: [
-    {
-      name: "Sarah Chen",
-      phone: "+1 (555) 123-4567",
-      email: "sarah@example.com",
-      isCreator: true,
-    },
-    {
-      name: "Mike Johnson",
-      phone: "+1 (555) 234-5678",
-      email: "mike@example.com",
-      isCreator: false,
-    },
-    {
-      name: "Lisa Park",
-      phone: "+1 (555) 345-6789",
-      email: "lisa@example.com",
-      isCreator: false,
-    },
-  ],
-  maxParticipants: 6,
-  surfLevel: "Intermediate",
-  description:
-    "Planning to surf dawn patrol every day and explore the local surf culture. Looking for chill people to share the stoke! We'll be staying near Ribeira d'Ilhas and exploring different breaks each day.",
-  tags: ["Looking for ride", "Accommodation sharing", "Dawn patrol", "Local culture"],
-  notes:
-    "I've been to Ericeira twice before and know some great local spots. Happy to show everyone around! Planning to rent a car so we can chase the best conditions each day.",
-}
+export default function TripDetailsPage({ params }: { params: { id: string } }) {
+  const { trip, loading, error } = useTrip(params.id)
 
-export default function TripDetailsPage() {
-  const availableSpots = trip.maxParticipants - trip.participants.length
+  // Format date helper
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), "MMM d, yyyy")
+    } catch {
+      return dateString
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white border-b">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center gap-4">
+              <Link href="/trips">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Trips
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </header>
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader>
+                  <Skeleton className="h-8 w-3/4" />
+                  <Skeleton className="h-4 w-1/2 mt-2" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-2/3" />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !trip) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white border-b">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center gap-4">
+              <Link href="/trips">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Trips
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </header>
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="text-center py-12">
+            <h3 className="text-lg font-semibold text-red-600 mb-2">Trip not found</h3>
+            <p className="text-gray-500 mb-4">{error || "This trip doesn't exist or has been removed."}</p>
+            <Link href="/trips">
+              <Button>Browse Other Trips</Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const availableSpots = trip.maxParticipants - trip.currentParticipants
+  const participants = trip.participants || []
 
   const createWhatsAppGroup = () => {
-    const phoneNumbers = trip.participants.map((p) => p.phone.replace(/\D/g, "")).join(",")
+    if (!participants.length) return
+    
+    const phoneNumbers = participants.map((p) => p.userPhone.replace(/\D/g, "")).join(",")
     const message = encodeURIComponent(
-      `Hey everyone! This is the WhatsApp group for our surf trip to ${trip.destination} (${trip.startDate} - ${trip.endDate}). Looking forward to surfing with you all! 🏄‍♂️`,
+      `Hey everyone! This is the WhatsApp group for our surf trip to ${trip.destination} (${formatDate(trip.startDate)} - ${formatDate(trip.endDate)}). Looking forward to surfing with you all! 🏄‍♂️`,
     )
 
     // This would open WhatsApp with pre-filled group creation
     window.open(`https://wa.me/?text=${message}`, "_blank")
+  }
+
+  const openWhatsAppGroup = () => {
+    if (trip.whatsappGroupLink) {
+      window.open(trip.whatsappGroupLink, "_blank")
+    }
   }
 
   return (
@@ -93,11 +139,11 @@ export default function TripDetailsPage() {
                     <CardDescription className="flex items-center gap-4 mt-3 text-base">
                       <span className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        {trip.startDate} - {trip.endDate}
+                        {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
                       </span>
                       <span className="flex items-center gap-1">
                         <Users className="h-4 w-4" />
-                        {trip.participants.length}/{trip.maxParticipants} surfers
+                        {participants.length}/{trip.maxParticipants} surfers
                       </span>
                     </CardDescription>
                   </div>
@@ -107,23 +153,24 @@ export default function TripDetailsPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  {trip.tags.map((tag) => (
-                    <Badge key={tag} variant="outline">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-
                 <div>
                   <h3 className="font-semibold mb-2">About this trip</h3>
                   <p className="text-gray-700">{trip.description}</p>
                 </div>
 
-                {trip.notes && (
-                  <div>
-                    <h3 className="font-semibold mb-2">Additional notes</h3>
-                    <p className="text-gray-700">{trip.notes}</p>
+                {trip.whatsappGroupLink && (
+                  <div className="p-4 bg-green-50 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-green-900 mb-1">WhatsApp Group</h3>
+                        <p className="text-sm text-green-700">Join the group chat to coordinate with other participants</p>
+                      </div>
+                      <Button onClick={openWhatsAppGroup} size="sm" className="bg-green-600 hover:bg-green-700">
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Join Group
+                        <ExternalLink className="h-3 w-3 ml-1" />
+                      </Button>
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -133,8 +180,8 @@ export default function TripDetailsPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>Trip Members ({trip.participants.length})</span>
-                  {trip.participants.length >= 2 && (
+                  <span>Trip Members ({participants.length})</span>
+                  {participants.length >= 2 && !trip.whatsappGroupLink && (
                     <Button onClick={createWhatsAppGroup} size="sm" className="bg-green-600 hover:bg-green-700">
                       <MessageCircle className="h-4 w-4 mr-2" />
                       Create WhatsApp Group
@@ -144,22 +191,22 @@ export default function TripDetailsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {trip.participants.map((participant, index) => (
+                  {participants.map((participant, index) => (
                     <div key={index}>
                       <div className="flex items-center gap-4">
                         <Avatar className="h-12 w-12">
                           <AvatarImage src="/placeholder.svg?height=48&width=48" />
                           <AvatarFallback>
-                            {participant.name
+                            {participant.userName
                               .split(" ")
-                              .map((n) => n[0])
+                              .map((n: string) => n[0])
                               .join("")}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <h4 className="font-medium">{participant.name}</h4>
-                            {participant.isCreator && (
+                            <h4 className="font-medium">{participant.userName}</h4>
+                            {participant.role === 'creator' && (
                               <Badge variant="secondary" className="text-xs">
                                 Trip Creator
                               </Badge>
@@ -168,11 +215,11 @@ export default function TripDetailsPage() {
                           <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
                             <span className="flex items-center gap-1">
                               <Phone className="h-3 w-3" />
-                              {participant.phone}
+                              {participant.userPhone}
                             </span>
                             <span className="flex items-center gap-1">
                               <Mail className="h-3 w-3" />
-                              {participant.email}
+                              {participant.userEmail}
                             </span>
                           </div>
                         </div>
@@ -181,7 +228,7 @@ export default function TripDetailsPage() {
                             size="sm"
                             variant="outline"
                             onClick={() =>
-                              window.open(`https://wa.me/${participant.phone.replace(/\D/g, "")}`, "_blank")
+                              window.open(`https://wa.me/${participant.userPhone.replace(/\D/g, "")}`, "_blank")
                             }
                           >
                             <MessageCircle className="h-3 w-3 mr-1" />
@@ -190,14 +237,14 @@ export default function TripDetailsPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => window.open(`mailto:${participant.email}`, "_blank")}
+                            onClick={() => window.open(`mailto:${participant.userEmail}`, "_blank")}
                           >
                             <Mail className="h-3 w-3 mr-1" />
                             Email
                           </Button>
                         </div>
                       </div>
-                      {index < trip.participants.length - 1 && <Separator className="mt-4" />}
+                      {index < participants.length - 1 && <Separator className="mt-4" />}
                     </div>
                   ))}
                 </div>
@@ -222,7 +269,7 @@ export default function TripDetailsPage() {
                 <CardHeader>
                   <CardTitle className="text-lg">Join This Trip</CardTitle>
                   <CardDescription>
-                    Connect with {trip.participants.length} other surfer{trip.participants.length > 1 ? "s" : ""}{" "}
+                    Connect with {participants.length} other surfer{participants.length > 1 ? "s" : ""}{" "}
                     heading to {trip.destination}
                   </CardDescription>
                 </CardHeader>
@@ -232,7 +279,7 @@ export default function TripDetailsPage() {
                       <div className="text-2xl font-bold text-blue-600">{availableSpots}</div>
                       <div className="text-sm text-gray-600">spot{availableSpots > 1 ? "s" : ""} left</div>
                     </div>
-                    <Link href={`/trips/${trip.id}/join`} className="block">
+                    <Link href={`/trips/${trip.tripId}/join`} className="block">
                       <Button className="w-full" size="lg">
                         Join Trip
                       </Button>
