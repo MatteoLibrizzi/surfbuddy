@@ -60,11 +60,19 @@ export default function JoinTripPage({ params }: { params: { id: string } }) {
           description: "You've successfully joined the trip. Other participants can now see your contact info.",
         })
         router.push(`/trips/${trip.tripId}`)
+      } else {
+        // Handle case where joinTrip returns false (error occurred)
+        toast({
+          title: "Error Joining Trip",
+          description: joinError || "Something went wrong. Please try again.",
+          variant: "destructive",
+        })
       }
     } catch (err) {
+      // Handle any unexpected errors
       toast({
-        title: "Error",
-        description: joinError || "Failed to join trip. Please try again.",
+        title: "Error Joining Trip",
+        description: joinError || "Something went wrong. Please try again.",
         variant: "destructive",
       })
     }

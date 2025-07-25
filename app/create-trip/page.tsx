@@ -118,11 +118,19 @@ export default function CreateTripPage() {
           description: "Your surf trip has been created successfully.",
         })
         router.push(`/trips/${trip.tripId}`)
+      } else {
+        // Handle case where createTrip returns null (error occurred)
+        toast({
+          title: "Error Creating Trip",
+          description: error || "Something went wrong. Please try again.",
+          variant: "destructive",
+        })
       }
     } catch (err) {
+      // Handle any unexpected errors
       toast({
-        title: "Error",
-        description: error || "Failed to create trip. Please try again.",
+        title: "Error Creating Trip",
+        description: error || "Something went wrong. Please try again.",
         variant: "destructive",
       })
     }

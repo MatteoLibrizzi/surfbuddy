@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-// TODO remove the USER concept as it's superfluous for the MVP, just keep some user data in the TRIPs table when a user asks to join a trip, but most importantly tell user that they should join the whatsapp group or tell the organizer
+
 // Types
 export interface Trip {
   tripId: string;
@@ -73,13 +73,21 @@ export function useTrips(location?: string) {
       const response = await fetch(url);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch trips');
+        if (response.status === 404) {
+          throw new Error('No trips found');
+        } else if (response.status >= 500) {
+          throw new Error('Server error. Please try again later.');
+        } else {
+          throw new Error('Something went wrong. Please try again.');
+        }
       }
       
       const data = await response.json();
-      setTrips(data);
+      setTrips(Array.isArray(data) ? data : []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Error fetching trips:', err);
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      setTrips([]); // Clear trips on error
     } finally {
       setLoading(false);
     }
@@ -117,14 +125,19 @@ export function useTrip(tripId: string | null) {
       if (!response.ok) {
         if (response.status === 404) {
           throw new Error('Trip not found');
+        } else if (response.status >= 500) {
+          throw new Error('Server error. Please try again later.');
+        } else {
+          throw new Error('Something went wrong. Please try again.');
         }
-        throw new Error('Failed to fetch trip');
       }
       
       const data = await response.json();
       setTrip(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Error fetching trip:', err);
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      setTrip(null); // Clear trip on error
     } finally {
       setLoading(false);
     }
@@ -161,14 +174,26 @@ export function useCreateTrip() {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create trip');
+        let errorMessage = 'Something went wrong. Please try again.';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          // If we can't parse error response, use default message
+        }
+        
+        if (response.status >= 500) {
+          errorMessage = 'Server error. Please try again later.';
+        }
+        
+        throw new Error(errorMessage);
       }
       
       const trip = await response.json();
       return trip;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Error creating trip:', err);
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
       return null;
     } finally {
       setLoading(false);
@@ -201,13 +226,27 @@ export function useJoinTrip() {
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to join trip');
+        let errorMessage = 'Something went wrong. Please try again.';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          // If we can't parse error response, use default message
+        }
+        
+        if (response.status === 404) {
+          errorMessage = 'Trip not found';
+        } else if (response.status >= 500) {
+          errorMessage = 'Server error. Please try again later.';
+        }
+        
+        throw new Error(errorMessage);
       }
       
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Error joining trip:', err);
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
       return false;
     } finally {
       setLoading(false);

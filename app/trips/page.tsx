@@ -21,10 +21,16 @@ export default function TripsPage() {
     setSearchQuery(query)
   }
 
-  const handleSearchSubmit = (e?: React.FormEvent) => {
+  const handleSearchSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault()
     const trimmedQuery = searchQuery.trim()
-    setActiveSearch(trimmedQuery)
+    
+    try {
+      setActiveSearch(trimmedQuery)
+    } catch (error) {
+      // Handle any search errors
+      console.error('Search error:', error)
+    }
   }
 
   const handleClearSearch = () => {
