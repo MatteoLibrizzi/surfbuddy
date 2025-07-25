@@ -194,7 +194,7 @@ export default function TripDetailsPage({ params }: { params: { id: string } }) 
                   {participants.map((participant, index) => (
                     <div key={index}>
                       <div className="flex items-center gap-4">
-                        <Avatar className="h-12 w-12">
+                        {/* <Avatar className="h-12 w-12">
                           <AvatarImage src="/placeholder.svg?height=48&width=48" />
                           <AvatarFallback>
                             {participant.userName
@@ -202,7 +202,7 @@ export default function TripDetailsPage({ params }: { params: { id: string } }) 
                               .map((n: string) => n[0])
                               .join("")}
                           </AvatarFallback>
-                        </Avatar>
+                        </Avatar> */}
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <h4 className="font-medium">{participant.userName}</h4>
@@ -223,24 +223,28 @@ export default function TripDetailsPage({ params }: { params: { id: string } }) 
                             </span>
                           </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 min-w-0">
                           <Button
                             size="sm"
                             variant="outline"
+                            className="text-xs px-2 py-1 h-7"
                             onClick={() =>
                               window.open(`https://wa.me/${participant.userPhone.replace(/\D/g, "")}`, "_blank")
                             }
                           >
                             <MessageCircle className="h-3 w-3 mr-1" />
-                            WhatsApp
+                            <span className="hidden sm:inline">WhatsApp</span>
+                            <span className="sm:hidden">WA</span>
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
+                            className="text-xs px-2 py-1 h-7"
                             onClick={() => window.open(`mailto:${participant.userEmail}`, "_blank")}
                           >
                             <Mail className="h-3 w-3 mr-1" />
-                            Email
+                            <span className="hidden sm:inline">Email</span>
+                            <span className="sm:hidden">Mail</span>
                           </Button>
                         </div>
                       </div>

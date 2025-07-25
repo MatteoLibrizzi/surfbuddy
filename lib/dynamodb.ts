@@ -34,14 +34,25 @@ export const INDEX_NAMES = {
 
 // Helper function to parse locations from destination string
 export function parseLocations(destination: string): string[] {
-  const parts = destination.split(',').map(s => s.trim());
-  const locations = [];
+  const locations: string[] = [];
+  const seen = new Set<string>();
   
-  // Add specific location (city/spot)
-  if (parts[0]) locations.push(parts[0]);
+  // Split by " | " to get individual location groups
+  const locationGroups = destination.split(' | ').map(s => s.trim()).filter(Boolean);
   
-  // Add country/region
-  if (parts[1]) locations.push(parts[1]);
+  locationGroups.forEach(group => {
+    // Split each group by comma to get city and country
+    const parts = group.split(',').map(s => s.trim()).filter(Boolean);
+    
+    // Add each part (city and country) as separate searchable locations
+    parts.forEach(part => {
+      const normalizedPart = part.toLowerCase();
+      if (part && !seen.has(normalizedPart)) {
+        seen.add(normalizedPart);
+        locations.push(part);
+      }
+    });
+  });
   
   return locations;
 }

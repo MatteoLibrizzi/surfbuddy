@@ -56,7 +56,7 @@ export default function CreateTripPage() {
   }
 
   const updateLocation = (index: number, field: keyof Location, value: string) => {
-    const updatedLocations = locations.map((location, i) => 
+    const updatedLocations = locations.map((location, i) =>
       i === index ? { ...location, [field]: value } : location
     )
     setLocations(updatedLocations)
@@ -75,10 +75,10 @@ export default function CreateTripPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     const destinationString = getDestinationString()
     const hasValidLocation = locations.some(loc => loc.city.trim() || loc.country.trim())
-    
+
     // Validation
     if (!tripData.name || !tripData.email || !tripData.phone || !hasValidLocation || !tripData.startDate || !tripData.endDate) {
       toast({
@@ -203,7 +203,7 @@ export default function CreateTripPage() {
                     Add Location
                   </Button>
                 </div>
-                
+
                 {locations.map((location, index) => (
                   <div key={index} className="space-y-3 p-4 border rounded-lg bg-gray-50">
                     <div className="flex items-center justify-between">
@@ -222,7 +222,7 @@ export default function CreateTripPage() {
                         </Button>
                       )}
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="space-y-2">
                         <Label htmlFor={`city-${index}`}>City/Spot</Label>
@@ -237,7 +237,7 @@ export default function CreateTripPage() {
                           />
                         </div>
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label htmlFor={`country-${index}`}>Country/Region</Label>
                         <Input
@@ -250,7 +250,7 @@ export default function CreateTripPage() {
                     </div>
                   </div>
                 ))}
-                
+
                 {getDestinationString() && (
                   <div className="p-3 bg-blue-50 rounded-lg">
                     <p className="text-sm text-blue-800">
@@ -273,10 +273,12 @@ export default function CreateTripPage() {
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
                       <Calendar
-                        mode="single"
                         selected={tripData.startDate}
                         onSelect={(date) => setTripData((prev) => ({ ...prev, startDate: date }))}
+                        mode="single"
                         required
+                        hideWeekdays
+                        navLayout={"after"}
                       />
                     </PopoverContent>
                   </Popover>
@@ -293,10 +295,12 @@ export default function CreateTripPage() {
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
                       <Calendar
-                        mode="single"
                         selected={tripData.endDate}
                         onSelect={(date) => setTripData((prev) => ({ ...prev, endDate: date }))}
-                        initialFocus
+                        mode="single"
+                        required
+                        hideWeekdays
+                        navLayout={"after"}
                       />
                     </PopoverContent>
                   </Popover>
@@ -342,7 +346,7 @@ export default function CreateTripPage() {
               </div>
 
               {/* WhatsApp Group Link */}
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="whatsappGroupLink">WhatsApp Group Link (Optional)</Label>
                 <Input
                   id="whatsappGroupLink"
@@ -353,7 +357,7 @@ export default function CreateTripPage() {
                 <p className="text-sm text-gray-500">
                   Share your WhatsApp group invite link so participants can easily join the group chat.
                 </p>
-              </div>
+              </div> */}
 
               {/* Notes */}
               <div className="space-y-2">

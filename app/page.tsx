@@ -17,7 +17,7 @@ export default function LandingPage() {
             <Link href="/trips">
               <Button variant="ghost">Browse Trips</Button>
             </Link>
-            <Link href="/trips/create">
+            <Link href="/create-trip">
               <Button>Create Trip</Button>
             </Link>
           </div>
@@ -40,7 +40,7 @@ export default function LandingPage() {
                 Browse Trips
               </Button>
             </Link>
-            <Link href="/trips/create">
+            <Link href="/create-trip">
               <Button size="lg" className="text-lg px-8 py-3">
                 Create Trip
               </Button>
