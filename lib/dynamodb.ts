@@ -1,3 +1,7 @@
+// TODO rebrand based on the domain you buy
+// TODO test deployment to production
+// TODO setup a notification system for when user create a trip (to notify you
+// TODO prettify landing page
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, UpdateCommand, DeleteCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 
