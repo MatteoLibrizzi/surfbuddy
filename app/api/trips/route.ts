@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { TripsService } from '@/lib/dynamodb';
+import { NotificationService } from '@/lib/notifications';
 
 // GET /api/trips - Get all trips
 export async function GET(request: NextRequest) {
@@ -69,6 +70,25 @@ export async function POST(request: NextRequest) {
       creatorPhone,
       whatsappGroupLink
     });
+
+    // Send notification email (async, don't wait for it)
+    if (trip) {
+      NotificationService.sendTripCreatedNotification({
+        tripId: trip.tripId,
+        destination: trip.destination,
+        startDate: trip.startDate,
+        endDate: trip.endDate,
+        creatorName: trip.creatorName,
+        creatorEmail: trip.creatorEmail,
+        creatorPhone: trip.creatorPhone,
+        surfLevel: trip.surfLevel,
+        maxParticipants: trip.maxParticipants,
+        description: trip.description,
+        whatsappGroupLink: trip.whatsappGroupLink ?? undefined,
+      }).catch(error => {
+        console.error('Notification failed (non-blocking):', error);
+      });
+    }
 
     return NextResponse.json(trip, { status: 201 });
   } catch (error) {

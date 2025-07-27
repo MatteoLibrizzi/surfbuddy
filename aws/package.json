@@ -11,7 +11,7 @@
     "cdk": "cdk",
     "publish": "tsc && cdk synth && cdk bootstrap && cdk deploy",
     "buildNDeployDev": "tsc && ENVIRONMENT=dev cdk deploy --profile personaldev",
-    "buildNDeployProd": "tsc && ENVIRONMENT=prod cdk deploy"
+    "buildNDeployProd": "tsc && ENVIRONMENT=prod cdk deploy --profile personalprod"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.149",

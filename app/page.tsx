@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, MapPin, Car, MessageCircle, Waves, Shield } from "lucide-react"
 import Link from "next/link"
+import Image from 'next/image'
 
 export default function LandingPage() {
   return (
@@ -10,8 +11,14 @@ export default function LandingPage() {
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Waves className="h-8 w-8 text-blue-600" />
-            <span className="text-2xl font-bold text-gray-900">SurfBuddy</span>
+            <Image
+              src="/logo.jpeg"
+              width={32}
+              height={32}
+              alt="TripDropIn Logo"
+              className="rounded"
+            />
+            <span className="text-2xl font-bold text-gray-900">TripDropIn</span>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/trips">
@@ -96,7 +103,7 @@ export default function LandingPage() {
           </p>
           <Link href="/trips">
             <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
-              Join SurfBuddy Today
+              Join TripDropIn Today
             </Button>
           </Link>
         </div>
@@ -107,7 +114,7 @@ export default function LandingPage() {
         <div className="container mx-auto text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Waves className="h-6 w-6" />
-            <span className="text-xl font-bold">SurfBuddy</span>
+            <span className="text-xl font-bold">TripDropIn</span>
           </div>
           <p className="text-gray-400">Connecting surfers worldwide, one wave at a time.</p>
         </div>

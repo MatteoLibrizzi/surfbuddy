@@ -1,5 +1,7 @@
 import * as cdk from 'aws-cdk-lib'
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb'
+import * as ses from 'aws-cdk-lib/aws-ses'
+import * as iam from 'aws-cdk-lib/aws-iam'
 import { Construct } from 'constructs'
 
 export class SurfBuddyStack extends cdk.Stack {
@@ -52,6 +54,26 @@ export class SurfBuddyStack extends cdk.Stack {
 			},
 		});
 
+		// SES Configuration (only for production)
+		if (this.prod) {
+			// SES Email Identity for sending notifications
+			const sesEmailIdentity = new ses.EmailIdentity(this, 'NotificationEmailIdentity', {
+				identity: ses.Identity.email('notifications@tripdropin.com'),
+			});
+
+			// Output SES configuration
+			new cdk.CfnOutput(this, 'SESEmailIdentity', {
+				value: sesEmailIdentity.emailIdentityName,
+				description: 'SES email identity for notifications',
+				exportName: `SurfBuddy-SESIdentity-${this.prod ? 'Prod' : 'Dev'}`,
+			});
+
+			new cdk.CfnOutput(this, 'SESRegion', {
+				value: this.region,
+				description: 'AWS region for SES',
+				exportName: `SurfBuddy-SESRegion-${this.prod ? 'Prod' : 'Dev'}`,
+			});
+		}
 
 		// Output table names for Vercel environment variables
 		new cdk.CfnOutput(this, 'TripsTableName', {

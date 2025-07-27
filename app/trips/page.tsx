@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Search, Plus, MapPin, Calendar, Users, Filter, Waves, Phone, Mail, Loader2, MessageCircle, X } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import { useTrips } from "@/hooks/use-trips"
 import { format } from "date-fns"
 
@@ -60,8 +61,14 @@ export default function TripsPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
-              <Waves className="h-8 w-8 text-blue-600" />
-              <span className="text-2xl font-bold text-gray-900">SurfBuddy</span>
+              <Image
+                src="/logo.jpeg"
+                width={32}
+                height={32}
+                alt="TripDropIn Logo"
+                className="rounded"
+              />
+              <span className="text-2xl font-bold text-gray-900">TripDropIn</span>
             </Link>
 
             <div className="flex-1 max-w-md mx-8">
