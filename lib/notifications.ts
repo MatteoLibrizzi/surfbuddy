@@ -18,7 +18,7 @@ const sesClient = new SESClient({
 
 // Notification configuration
 const NOTIFICATION_CONFIG = {
-  senderEmail: process.env.SES_SENDER_EMAIL || 'notifications@tripdropin.com',
+  senderEmail: process.env.SES_SENDER_EMAIL || 'librizzimatteo.ml@gmail.com',
   recipientEmail: process.env.NOTIFICATION_EMAIL || 'librizzimatteo.ml@gmail.com',
   enabled: !isDev, // Only send notifications in production
 };
